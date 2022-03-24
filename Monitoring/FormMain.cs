@@ -8,16 +8,99 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using OpcLabs.EasyOpc.DataAccess;
+using OpcLabs.EasyOpc.DataAccess.OperationModel;
+
 namespace Monitoring
 {
     public partial class FormMain : Form
     {
         Settings appSet;
+        private EasyDAClient client;
 
         public FormMain()
         {
             InitializeComponent();
             appSet = new Settings();
+            client = new EasyDAClient();
+            client.ItemChanged += Client_ItemChanged;
+        }
+
+        private void Client_ItemChanged(object sender, EasyDAItemChangedEventArgs e)
+        {
+            var itemID = e.Arguments.ItemDescriptor.ItemId; // Tag Name
+            var itemValue = e.Vtq.DisplayValue(); // Tag Value
+            double value;
+            Double.TryParse(itemValue, out value);
+
+            var state = (int)e.Arguments.State; // ID
+
+            switch (state)
+            {
+                case 1:
+                    tagPanel1.Invoke((MethodInvoker)delegate {
+                        tagPanel1.RampValue = value;
+                    });
+                    break;
+                case 2:
+                    tagPanel1.Invoke((MethodInvoker)delegate {
+                        tagPanel1.RandomValue = value;
+                    });
+                    break;
+                case 3:
+                    tagPanel1.Invoke((MethodInvoker)delegate {
+                        tagPanel1.SinValue = value;
+                    });
+                    break;
+
+                case 4:
+                    tagPanel2.Invoke((MethodInvoker)delegate {
+                        tagPanel2.RampValue = value;
+                    });
+                    break;
+                case 5:
+                    tagPanel2.Invoke((MethodInvoker)delegate {
+                        tagPanel2.RandomValue = value;
+                    });
+                    break;
+                case 6:
+                    tagPanel2.Invoke((MethodInvoker)delegate {
+                        tagPanel2.SinValue = value;
+                    });
+                    break;
+
+                case 7:
+                    tagPanel3.Invoke((MethodInvoker)delegate {
+                        tagPanel3.RampValue = value;
+                    });
+                    break;
+                case 8:
+                    tagPanel3.Invoke((MethodInvoker)delegate {
+                        tagPanel3.RandomValue = value;
+                    });
+                    break;
+                case 9:
+                    tagPanel3.Invoke((MethodInvoker)delegate {
+                        tagPanel3.SinValue = value;
+                    });
+                    break;
+
+                case 10:
+                    tagPanel4.Invoke((MethodInvoker)delegate {
+                        tagPanel4.RampValue = value;
+                    });
+                    break;
+                case 11:
+                    tagPanel4.Invoke((MethodInvoker)delegate {
+                        tagPanel4.RandomValue = value;
+                    });
+                    break;
+                case 12:
+                    tagPanel4.Invoke((MethodInvoker)delegate {
+                        tagPanel4.SinValue = value;
+                    });
+                    break;
+            }
         }
 
         private void FormMain_Load(object sender, EventArgs e)
@@ -98,6 +181,116 @@ namespace Monitoring
                 button1.PerformClick();
                 e.Handled = true;
             }
+        }
+
+        private void buttonSubscribe_Click(object sender, EventArgs e)
+        {
+            tagPanel1.ClearData();
+            tagPanel2.ClearData();
+            tagPanel3.ClearData();
+            tagPanel4.ClearData();
+
+            int sampleTime = 100;
+            var argumentArray = new DAItemGroupArguments[12];
+
+            #region DEVICE 1
+            argumentArray[0] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Ramp1",
+                sampleTime,
+                1);
+
+            argumentArray[1] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Random1",
+                sampleTime,
+                2);
+
+            argumentArray[2] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Sine1",
+                sampleTime,
+                3);
+            #endregion
+
+            #region DEVICE 2
+            argumentArray[3] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Ramp2",
+                sampleTime,
+                4);
+
+            argumentArray[4] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Random2",
+                sampleTime,
+                5);
+
+            argumentArray[5] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Sine2",
+                sampleTime,
+                6);
+            #endregion
+
+            #region DEVICE 3
+            argumentArray[6] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Ramp3",
+                sampleTime,
+                7);
+
+            argumentArray[7] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Random3",
+                sampleTime,
+                8);
+
+            argumentArray[8] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Sine3",
+                sampleTime,
+                9);
+            #endregion
+
+            #region DEVICE 4
+            argumentArray[9] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Ramp4",
+                sampleTime,
+                10);
+
+            argumentArray[10] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Random4",
+                sampleTime,
+                11);
+
+            argumentArray[11] = new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                "Simulation Examples.Functions.Sine4",
+                sampleTime,
+                12);
+            #endregion
+
+            client.SubscribeMultipleItems(argumentArray);
+        }
+
+        private void UnSubscribe_Click(object sender, EventArgs e)
+        {
+            client.UnsubscribeAllItems();
         }
     }
 }

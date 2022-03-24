@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+
 
 namespace Monitoring
 {
@@ -68,6 +70,7 @@ namespace Monitoring
             {
                 _RampValue = value;
                 textBoxRamp.Text = _RampValue.ToString("0.00");
+                chart.Series[0].Points.Add(value);
             }
         }
 
@@ -78,6 +81,7 @@ namespace Monitoring
             {
                 _RandomValue = value;
                 textBoxRandom.Text = _RandomValue.ToString("0.00");
+                chart.Series[1].Points.Add(value);
             }
         }
 
@@ -88,6 +92,7 @@ namespace Monitoring
             {
                 _SinValue = value;
                 textBoxSin.Text = _SinValue.ToString("0.00");
+                chart.Series[2].Points.Add(value);
             }
         }
 
@@ -103,6 +108,26 @@ namespace Monitoring
             RampValue = 0;
             RandomValue = 0;
             SinValue = 0;
+        }
+
+        public DataPointCollection RampPoints
+        {
+            get { return chart.Series[0].Points; }
+        }
+        public DataPointCollection RandomPoints
+        {
+            get { return chart.Series[1].Points; }
+        }
+        public DataPointCollection SinePoints
+        {
+            get { return chart.Series[2].Points; }
+        }
+
+        public void ClearData()
+        {
+            chart.Series[0].Points.Clear();
+            chart.Series[1].Points.Clear();
+            chart.Series[2].Points.Clear();
         }
     }
 }

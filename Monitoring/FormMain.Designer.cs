@@ -32,6 +32,8 @@ namespace Monitoring
             this.buttonSettings = new System.Windows.Forms.Button();
             this.buttonClose = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.buttonSubscribe = new System.Windows.Forms.Button();
+            this.UnSubscribe = new System.Windows.Forms.Button();
             this.tagPanel4 = new Monitoring.TagPanel();
             this.tagPanel3 = new Monitoring.TagPanel();
             this.tagPanel2 = new Monitoring.TagPanel();
@@ -62,13 +64,35 @@ namespace Monitoring
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 168);
+            this.button1.Location = new System.Drawing.Point(336, 326);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 6;
-            this.button1.Text = "button1";
+            this.button1.Text = "MANUAL";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // buttonSubscribe
+            // 
+            this.buttonSubscribe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.buttonSubscribe.Location = new System.Drawing.Point(118, 326);
+            this.buttonSubscribe.Name = "buttonSubscribe";
+            this.buttonSubscribe.Size = new System.Drawing.Size(103, 23);
+            this.buttonSubscribe.TabIndex = 7;
+            this.buttonSubscribe.Text = "SUBSCRIBE";
+            this.buttonSubscribe.UseVisualStyleBackColor = true;
+            this.buttonSubscribe.Click += new System.EventHandler(this.buttonSubscribe_Click);
+            // 
+            // UnSubscribe
+            // 
+            this.UnSubscribe.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.UnSubscribe.Location = new System.Drawing.Point(227, 326);
+            this.UnSubscribe.Name = "UnSubscribe";
+            this.UnSubscribe.Size = new System.Drawing.Size(103, 23);
+            this.UnSubscribe.TabIndex = 8;
+            this.UnSubscribe.Text = "UNSUBSCRIBE";
+            this.UnSubscribe.UseVisualStyleBackColor = true;
+            this.UnSubscribe.Click += new System.EventHandler(this.UnSubscribe_Click);
             // 
             // tagPanel4
             // 
@@ -81,7 +105,7 @@ namespace Monitoring
             this.tagPanel4.RandomValue = 0D;
             this.tagPanel4.SinTitle = "Sin";
             this.tagPanel4.SinValue = 0D;
-            this.tagPanel4.Size = new System.Drawing.Size(130, 150);
+            this.tagPanel4.Size = new System.Drawing.Size(130, 250);
             this.tagPanel4.TabIndex = 5;
             // 
             // tagPanel3
@@ -95,7 +119,7 @@ namespace Monitoring
             this.tagPanel3.RandomValue = 0D;
             this.tagPanel3.SinTitle = "Sin";
             this.tagPanel3.SinValue = 0D;
-            this.tagPanel3.Size = new System.Drawing.Size(130, 150);
+            this.tagPanel3.Size = new System.Drawing.Size(130, 250);
             this.tagPanel3.TabIndex = 4;
             // 
             // tagPanel2
@@ -109,7 +133,7 @@ namespace Monitoring
             this.tagPanel2.RandomValue = 0D;
             this.tagPanel2.SinTitle = "Sin";
             this.tagPanel2.SinValue = 0D;
-            this.tagPanel2.Size = new System.Drawing.Size(130, 150);
+            this.tagPanel2.Size = new System.Drawing.Size(130, 250);
             this.tagPanel2.TabIndex = 3;
             // 
             // tagPanel1
@@ -123,7 +147,7 @@ namespace Monitoring
             this.tagPanel1.RandomValue = 0D;
             this.tagPanel1.SinTitle = "Sin";
             this.tagPanel1.SinValue = 0D;
-            this.tagPanel1.Size = new System.Drawing.Size(130, 150);
+            this.tagPanel1.Size = new System.Drawing.Size(130, 250);
             this.tagPanel1.TabIndex = 2;
             // 
             // FormMain
@@ -131,6 +155,8 @@ namespace Monitoring
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(584, 361);
+            this.Controls.Add(this.UnSubscribe);
+            this.Controls.Add(this.buttonSubscribe);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.tagPanel4);
             this.Controls.Add(this.tagPanel3);
@@ -138,6 +164,7 @@ namespace Monitoring
             this.Controls.Add(this.tagPanel1);
             this.Controls.Add(this.buttonClose);
             this.Controls.Add(this.buttonSettings);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.KeyPreview = true;
             this.Name = "FormMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -158,6 +185,8 @@ namespace Monitoring
         private TagPanel tagPanel3;
         private TagPanel tagPanel4;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonSubscribe;
+        private System.Windows.Forms.Button UnSubscribe;
     }
 }
 

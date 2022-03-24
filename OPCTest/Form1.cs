@@ -31,9 +31,9 @@ namespace OPCTest
             var itemValue = e.Vtq.DisplayValue(); // Tag Value
 
             // TODO: Make switch-case
-            var state = (int)e.Arguments.State;
+            var state = (int)e.Arguments.State; // ID
 
-            switch(state)
+            switch (state)
             {
                 case 1:
                     textBox1.Invoke((MethodInvoker)delegate {
@@ -82,21 +82,21 @@ namespace OPCTest
                 "localhost",
                 "Kepware.KEPServerEX.V6",
                 "Simulation Examples.Functions.Ramp1",
-                100,
+                1000,
                 1);
 
             argumentArray[1] = new DAItemGroupArguments(
                 "localhost",
                 "Kepware.KEPServerEX.V6",
                 "Simulation Examples.Functions.Random1",
-                100,
+                1000,
                 2);
 
             argumentArray[2] = new DAItemGroupArguments(
                 "localhost",
                 "Kepware.KEPServerEX.V6",
                 "Simulation Examples.Functions.Sine1",
-                100,
+                1000,
                 3);
 
             client.SubscribeMultipleItems(argumentArray);
