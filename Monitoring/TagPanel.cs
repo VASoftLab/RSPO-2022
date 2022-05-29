@@ -14,6 +14,11 @@ namespace Monitoring
 {
     public partial class TagPanel : UserControl
     {
+        public int SerialNumber
+        {
+            get; set;
+        }
+
         private string _PanelTitle;
         private string _RampTitle;
         private string _RandomTitle;
@@ -51,6 +56,46 @@ namespace Monitoring
                 _RandomTitle = value;
                 labelRandom.Text = _RandomTitle;
             }
+        }
+
+        internal void ApplyState(int state, double value)
+        {
+            int maxState = SerialNumber * 3;
+            int currentState = maxState - state;
+            switch (currentState) {
+                case 2:
+                    RampValue = value;
+                    break;
+                case 1:
+                    RandomValue = value;
+                    break;
+                case 0:
+                    SinValue = value;
+                    break;
+            }
+        }
+
+        internal string GetTableName(int state)
+        {
+            int maxState = SerialNumber * 3;
+            int currentState = maxState - state;
+            switch (currentState)
+            {
+                case 2:
+                    return "ramp";
+                case 1:
+                    return "random";
+                case 0:
+                    return "sine";
+            }
+            throw new Exception();
+        }
+
+        internal bool OwnsState(int state)
+        {
+            int maxState = SerialNumber * 3;
+            int minState = maxState - 2;
+            return minState <= state && state <= maxState ;
         }
 
         public string SinTitle
@@ -108,6 +153,14 @@ namespace Monitoring
             RampValue = 0;
             RandomValue = 0;
             SinValue = 0;
+
+            RampValue = 1;
+            RandomValue = 1;
+            SinValue = 1;
+
+            RampValue = 2;
+            RandomValue = 2;
+            SinValue = 2;
         }
 
         public DataPointCollection RampPoints
