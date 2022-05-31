@@ -41,8 +41,16 @@ namespace Monitoring
 
             foreach (var panel in Panels) {
                 if (panel.OwnsState(state)) {
-                    panel.ApplyState(state, value);
-                    WriteToDb(panel, state, value);
+                    
+                    // Запускаем визуализацию в отдельном потоке
+                    panel.BeginInvoke(new Action(() =>
+                    {
+                        panel.ApplyState(state, value);
+                        // WriteToDb(panel, state, value);
+                    }));
+
+                    // panel.ApplyState(state, value);
+                    // WriteToDb(panel, state, value);
                     break;
                 }
             }
