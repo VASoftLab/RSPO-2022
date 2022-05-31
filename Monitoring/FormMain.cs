@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Data.SQLite;
 
 using OpcLabs.EasyOpc.DataAccess;
 using OpcLabs.EasyOpc.DataAccess.OperationModel;
@@ -17,6 +18,9 @@ namespace Monitoring
     {
         Settings appSet;
         private EasyDAClient client;
+        private SQLiteConnection connection;
+
+        List<TagPanel> Panels = new List<TagPanel>();
 
         public FormMain()
         {
@@ -35,93 +39,89 @@ namespace Monitoring
 
             var state = (int)e.Arguments.State; // ID
 
-            switch (state)
+            foreach (var panel in Panels) {
+                if (panel.OwnsState(state)) {
+                    panel.ApplyState(state, value);
+                    WriteToDb(panel, state, value);
+                    break;
+                }
+            }
+        }
+
+        private void WriteToDb(TagPanel panel, int state, double value)
+        {
+            try
             {
-                case 1:
-                    tagPanel1.Invoke((MethodInvoker)delegate {
-                        tagPanel1.RampValue = value;
-                    });
-                    break;
-                case 2:
-                    tagPanel1.Invoke((MethodInvoker)delegate {
-                        tagPanel1.RandomValue = value;
-                    });
-                    break;
-                case 3:
-                    tagPanel1.Invoke((MethodInvoker)delegate {
-                        tagPanel1.SinValue = value;
-                    });
-                    break;
-
-                case 4:
-                    tagPanel2.Invoke((MethodInvoker)delegate {
-                        tagPanel2.RampValue = value;
-                    });
-                    break;
-                case 5:
-                    tagPanel2.Invoke((MethodInvoker)delegate {
-                        tagPanel2.RandomValue = value;
-                    });
-                    break;
-                case 6:
-                    tagPanel2.Invoke((MethodInvoker)delegate {
-                        tagPanel2.SinValue = value;
-                    });
-                    break;
-
-                case 7:
-                    tagPanel3.Invoke((MethodInvoker)delegate {
-                        tagPanel3.RampValue = value;
-                    });
-                    break;
-                case 8:
-                    tagPanel3.Invoke((MethodInvoker)delegate {
-                        tagPanel3.RandomValue = value;
-                    });
-                    break;
-                case 9:
-                    tagPanel3.Invoke((MethodInvoker)delegate {
-                        tagPanel3.SinValue = value;
-                    });
-                    break;
-
-                case 10:
-                    tagPanel4.Invoke((MethodInvoker)delegate {
-                        tagPanel4.RampValue = value;
-                    });
-                    break;
-                case 11:
-                    tagPanel4.Invoke((MethodInvoker)delegate {
-                        tagPanel4.RandomValue = value;
-                    });
-                    break;
-                case 12:
-                    tagPanel4.Invoke((MethodInvoker)delegate {
-                        tagPanel4.SinValue = value;
-                    });
-                    break;
+                using (SQLiteCommand command = connection.CreateCommand())
+                {
+                    var tableName = panel.GetTableName(state);
+                    command.CommandText = $"INSERT INTO [{tableName}] (serial_number, value, date) VALUES (@serialNumber, @value, @date)";
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.Add(new SQLiteParameter("@serialNumber", panel.SerialNumber));
+                    command.Parameters.Add(new SQLiteParameter("@value", value));
+                    command.Parameters.Add(new SQLiteParameter("@date", DateTime.Now.ToFileTime()));
+                    command.ExecuteNonQuery();
+                }
+            } catch (Exception E)
+            {
+                MessageBox.Show(E.ToString());
             }
         }
 
         private void FormMain_Load(object sender, EventArgs e)
         {
             appSet.Load();
+            ConnectToDatabase();
+            RememberPanels();
+            InitializePanelsWithDefaultTitle();
+        }
 
-            tagPanel1.RampTitle = "RAMP 1";
-            tagPanel1.RandomTitle = "RANDOM 1";
-            tagPanel1.SinTitle = "SIN 1";
+        private void FormMain_Close()
+        {
+            try
+            {
+                if (connection != null && connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            catch (Exception E)
+            {
+                MessageBox.Show(E.ToString());
+            }
+        }
 
-            tagPanel2.RampTitle = "RAMP 2";
-            tagPanel2.RandomTitle = "RANDOM 2";
-            tagPanel2.SinTitle = "SIN 2";
+        private void ConnectToDatabase()
+        {
+            string connectionString = String.Format("Data Source={0};Version=3;",
+                System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "test_db.db"));
+            try
+            {
+                connection = new SQLiteConnection(connectionString);
+                connection.Open();
+            } catch (Exception E)
+            {
+                MessageBox.Show(E.ToString());
+            }
+        }
 
-            tagPanel3.RampTitle = "RAMP 3";
-            tagPanel3.RandomTitle = "RANDOM 3";
-            tagPanel3.SinTitle = "SIN 3";
+        private void InitializePanelsWithDefaultTitle()
+        {
+            foreach (var panel in Panels) {
+                var serialNumber = panel.SerialNumber.ToString();
+                panel.RampTitle = $"RAMP {serialNumber}";
+                tagPanel1.RandomTitle = $"RANDOM {serialNumber}";
+                tagPanel1.SinTitle = $"SIN {serialNumber}";
+            }
+        }
 
-            tagPanel4.RampTitle = "RAMP 4";
-            tagPanel4.RandomTitle = "RANDOM 4";
-            tagPanel4.SinTitle = "SIN 4";
+        private void RememberPanels()
+        {
+            foreach (var control in Controls) {
+                if (control is TagPanel) {
+                    Panels.Add((TagPanel) control);
+                }
+            }
         }
 
         private void buttonClose_Click(object sender, EventArgs e)
@@ -152,21 +152,12 @@ namespace Monitoring
         private void button1_Click(object sender, EventArgs e)
         {
             Random random = new Random();
-            tagPanel1.RampValue = Math.PI;
-            tagPanel1.RandomValue = random.NextDouble();
-            tagPanel1.SinValue = Math.Sin(random.NextDouble());
 
-            tagPanel2.RampValue = Math.PI;
-            tagPanel2.RandomValue = random.NextDouble();
-            tagPanel2.SinValue = Math.Sin(random.NextDouble());
-
-            tagPanel3.RampValue = Math.PI;
-            tagPanel3.RandomValue = random.NextDouble();
-            tagPanel3.SinValue = Math.Sin(random.NextDouble());
-
-            tagPanel4.RampValue = Math.PI;
-            tagPanel4.RandomValue = random.NextDouble();
-            tagPanel4.SinValue = Math.Sin(random.NextDouble());
+            foreach (var panel in Panels) {
+                panel.RampValue = Math.PI;
+                panel.RandomValue = random.NextDouble();
+                panel.SinValue = Math.Sin(random.NextDouble());
+            }
         }
 
         private void FormMain_KeyPress(object sender, KeyPressEventArgs e)
@@ -185,107 +176,46 @@ namespace Monitoring
 
         private void buttonSubscribe_Click(object sender, EventArgs e)
         {
-            tagPanel1.ClearData();
-            tagPanel2.ClearData();
-            tagPanel3.ClearData();
-            tagPanel4.ClearData();
+            ClearPanelsData();
+
 
             int sampleTime = 100;
-            var argumentArray = new DAItemGroupArguments[12];
+            var count = 3 * Panels.Count;
+            var argumentArray = new DAItemGroupArguments[count];
 
-            #region DEVICE 1
-            argumentArray[0] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Ramp1",
-                sampleTime,
-                1);
+            foreach (var panel in Panels) {
 
-            argumentArray[1] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Random1",
-                sampleTime,
-                2);
+                var serialNumber = panel.SerialNumber.ToString();
+                var argumentIndex = panel.SerialNumber * 3 - 3;
 
-            argumentArray[2] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Sine1",
-                sampleTime,
-                3);
-            #endregion
+                argumentArray[argumentIndex] = createArgument(sampleTime, argumentIndex + 1, $"Simulation Examples.Functions.Ramp{serialNumber}");
+                argumentIndex++;
 
-            #region DEVICE 2
-            argumentArray[3] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Ramp2",
-                sampleTime,
-                4);
+                argumentArray[argumentIndex] = createArgument(sampleTime, argumentIndex + 1, $"Simulation Examples.Functions.Random{serialNumber}");
+                argumentIndex++;
 
-            argumentArray[4] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Random2",
-                sampleTime,
-                5);
-
-            argumentArray[5] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Sine2",
-                sampleTime,
-                6);
-            #endregion
-
-            #region DEVICE 3
-            argumentArray[6] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Ramp3",
-                sampleTime,
-                7);
-
-            argumentArray[7] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Random3",
-                sampleTime,
-                8);
-
-            argumentArray[8] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Sine3",
-                sampleTime,
-                9);
-            #endregion
-
-            #region DEVICE 4
-            argumentArray[9] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Ramp4",
-                sampleTime,
-                10);
-
-            argumentArray[10] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Random4",
-                sampleTime,
-                11);
-
-            argumentArray[11] = new DAItemGroupArguments(
-                "localhost",
-                "Kepware.KEPServerEX.V6",
-                "Simulation Examples.Functions.Sine4",
-                sampleTime,
-                12);
-            #endregion
+                argumentArray[argumentIndex] = createArgument(sampleTime, argumentIndex + 1, $"Simulation Examples.Functions.Sine{serialNumber}");
+            }
 
             client.SubscribeMultipleItems(argumentArray);
+        }
+
+        private static DAItemGroupArguments createArgument(int sampleTime, int state, string itemId)
+        {
+            return new DAItemGroupArguments(
+                "localhost",
+                "Kepware.KEPServerEX.V6",
+                itemId,
+                sampleTime,
+                state
+            );
+        }
+
+        private void ClearPanelsData()
+        {
+            foreach (var panel in Panels) {
+                panel.ClearData();
+            }
         }
 
         private void UnSubscribe_Click(object sender, EventArgs e)
