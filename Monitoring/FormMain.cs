@@ -11,12 +11,17 @@ using System.Windows.Forms;
 using OpcLabs.EasyOpc.DataAccess;
 using OpcLabs.EasyOpc.DataAccess.OperationModel;
 
+using System.Data.SQLite;
+
 namespace Monitoring
 {
     public partial class FormMain : Form
     {
         Settings appSet;
         private EasyDAClient client;
+        string connectionString;
+        SQLiteConnection sqliteConnection;
+
 
         public FormMain()
         {
@@ -24,6 +29,8 @@ namespace Monitoring
             appSet = new Settings();
             client = new EasyDAClient();
             client.ItemChanged += Client_ItemChanged;
+
+            connectionString = String.Format("Data Source={0};Version=3;", System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.ExecutablePath), "mag2022.db"));
         }
 
         private void Client_ItemChanged(object sender, EasyDAItemChangedEventArgs e)
@@ -32,6 +39,15 @@ namespace Monitoring
             var itemValue = e.Vtq.DisplayValue(); // Tag Value
             double value;
             Double.TryParse(itemValue, out value);
+
+            using (SQLiteCommand sql = sqliteConnection.CreateCommand())
+            {
+                sql.CommandText = "INSERT INTO [tbTagValue] (tagName, tagValue) VALUES (@pName, @pValue)";
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.Add(new SQLiteParameter("@pName", itemID.ToString()));
+                sql.Parameters.Add(new SQLiteParameter("@pValue", itemValue.ToString()));
+                sql.ExecuteNonQuery();
+            }
 
             var state = (int)e.Arguments.State; // ID
 
@@ -122,6 +138,17 @@ namespace Monitoring
             tagPanel4.RampTitle = "RAMP 4";
             tagPanel4.RandomTitle = "RANDOM 4";
             tagPanel4.SinTitle = "SIN 4";
+
+            try
+            {
+                sqliteConnection = new SQLiteConnection(connectionString);
+                sqliteConnection.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
         }
 
         private void buttonClose_Click(object sender, EventArgs e)
@@ -132,6 +159,23 @@ namespace Monitoring
                 buttons: MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 appSet.Save();
+
+                try
+                {
+                    if (sqliteConnection != null)
+                    {
+                        if (sqliteConnection.State == ConnectionState.Open)
+                        {
+                            sqliteConnection.Close();
+                        }
+
+                    }                    
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
                 Close();
             }
         }
@@ -190,7 +234,7 @@ namespace Monitoring
             tagPanel3.ClearData();
             tagPanel4.ClearData();
 
-            int sampleTime = 100;
+            int sampleTime = 1000;
             var argumentArray = new DAItemGroupArguments[12];
 
             #region DEVICE 1
